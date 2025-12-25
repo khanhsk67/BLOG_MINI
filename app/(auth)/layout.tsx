@@ -84,12 +84,19 @@ export default function SignupPage() {
 
       const data = await response.json();
 
-      // Store token
-      localStorage.setItem("authToken", data.tokens.access_token);
-      localStorage.setItem("refreshToken", data.tokens.refresh_token);
+      // ⭐ THAY ĐỔI: Lưu vào COOKIE thay vì localStorage
+      // Lưu access token
+      document.cookie = `authToken=${
+        data.tokens.access_token
+      }; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
+
+      // Lưu refresh token
+      document.cookie = `refreshToken=${
+        data.tokens.refresh_token
+      }; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Strict`;
 
       // Redirect to home
-      router.push("/");
+      router.push("/home"); // ⭐ Chuyển về /home thay vì /
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
