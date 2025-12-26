@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { mockPosts } from '@/lib/mock-posts'
 
-// Mock database
-const mockPosts = [
-  {
-    id: '1',
-    author_id: 'user-1',
-    title: 'The Future of Design Systems in 2025',
-    slug: 'the-future-of-design-systems-in-2025',
-    content: 'Full content here...',
-  },
-]
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {

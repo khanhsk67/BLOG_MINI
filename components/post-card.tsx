@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import CommentSection from '@/components/comment-section'
@@ -69,18 +70,26 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
       {/* Content */}
       <div className="px-4 py-3 space-y-3">
         <div>
-          <h3 className="text-lg font-bold text-foreground mb-2">{post.title}</h3>
-          <p className="text-sm text-foreground line-clamp-2">{post.excerpt}</p>
+          <h3 className="text-lg font-bold text-foreground mb-2">
+            <Link href={`/posts/${post.id}`} className="hover:underline">
+              {post.title}
+            </Link>
+          </h3>
+          <p className="text-sm text-foreground line-clamp-2">
+            <Link href={`/posts/${post.id}`} className="hover:underline">
+              {post.excerpt}
+            </Link>
+          </p>
         </div>
 
         {post.image && (
-          <div className="rounded-lg overflow-hidden bg-secondary aspect-video">
+          <Link href={`/posts/${post.id}`} className="rounded-lg overflow-hidden bg-secondary aspect-video block overflow-hidden">
             <img 
               src={post.image || "/placeholder.svg"} 
               alt={post.title}
               className="w-full h-full object-cover hover:scale-105 transition duration-300"
             />
-          </div>
+          </Link>
         )}
 
         {/* Tags */}
