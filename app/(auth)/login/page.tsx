@@ -33,12 +33,19 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      // Store token
-      localStorage.setItem("authToken", data.tokens.access_token);
-      localStorage.setItem("refreshToken", data.tokens.refresh_token);
+      // ⭐ THAY ĐỔI: Lưu vào COOKIE thay vì localStorage
+      // Lưu access token (7 ngày)
+      document.cookie = `authToken=${
+        data.tokens.access_token
+      }; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
 
-      // Redirect to home
-      router.push("/");
+      // Lưu refresh token (30 ngày)
+      document.cookie = `refreshToken=${
+        data.tokens.refresh_token
+      }; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Strict`;
+
+      // ⭐ THAY ĐỔI: Redirect to /home instead of /
+      router.push("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
