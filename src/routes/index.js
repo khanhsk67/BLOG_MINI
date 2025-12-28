@@ -7,6 +7,7 @@ const authRoutes = require('./auth.routes');
 const userRoutes = require('./user.routes');
 const commentRoutes = require('./comment.routes');
 const notificationRoutes = require('./notification.routes');
+const adminRoutes = require('./admin.routes');
 
 /**
  * API Routes
@@ -28,6 +29,7 @@ router.use('/users', userRoutes);
 router.use('/posts', postRoutes);
 router.use('/comments', commentRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/admin', adminRoutes);
 
 // API documentation (placeholder)
 router.get('/', (req, res) => {
@@ -41,6 +43,7 @@ router.get('/', (req, res) => {
       posts: '/api/posts',
       comments: '/api/comments',
       notifications: '/api/notifications',
+      admin: '/api/admin',
       health: '/api/health'
     }
   });
