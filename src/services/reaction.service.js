@@ -1,5 +1,6 @@
 const { Reaction, Post, User } = require('../models');
 const { NotFoundError, ConflictError } = require('../utils/errors');
+const notificationService = require('./notification.service');
 
 class ReactionService {
   /**
@@ -27,10 +28,10 @@ class ReactionService {
       post_id: postId
     });
 
-    // TODO: Create notification for post author
-    // if (post.author_id !== userId) {
-    //   await notificationService.createLikeNotification(post.author_id, userId, postId);
-    // }
+    // Create notification for post author
+    if (post.author_id !== userId) {
+      await notificationService.notifyLike(post.author_id, userId, postId);
+    }
 
     // Get updated like count
     const likeCount = await this.getPostLikeCount(postId);

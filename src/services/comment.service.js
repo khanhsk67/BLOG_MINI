@@ -1,5 +1,6 @@
 const { Comment, User, Post } = require('../models');
 const { NotFoundError, ForbiddenError } = require('../utils/errors');
+const notificationService = require('./notification.service');
 
 class CommentService {
   /**
@@ -13,8 +14,9 @@ class CommentService {
     }
 
     // If it's a reply, check if parent comment exists
+    let parentComment = null;
     if (parentCommentId) {
-      const parentComment = await Comment.findByPk(parentCommentId);
+      parentComment = await Comment.findByPk(parentCommentId);
       if (!parentComment) {
         throw new NotFoundError('Parent comment');
       }
@@ -32,8 +34,18 @@ class CommentService {
       content
     });
 
-    // TODO: Create notification for post author (and parent comment author if reply)
-    // await notificationService.createCommentNotification(...)
+    // Create notifications
+    if (parentCommentId && parentComment) {
+      // Notify parent comment author about reply
+      if (parentComment.user_id !== userId) {
+        await notificationService.notifyReply(parentComment.user_id, userId, postId);
+      }
+    } else {
+      // Notify post author about new comment
+      if (post.author_id !== userId) {
+        await notificationService.notifyComment(post.author_id, userId, postId);
+      }
+    }
 
     // Return comment with user info
     return await this.getCommentById(comment.id);

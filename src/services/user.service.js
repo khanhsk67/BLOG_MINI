@@ -1,6 +1,7 @@
 const { User, Post, Follow, sequelize } = require('../models');
 const { NotFoundError, ConflictError, ForbiddenError } = require('../utils/errors');
 const { Op } = require('sequelize');
+const notificationService = require('./notification.service');
 
 class UserService {
   /**
@@ -171,8 +172,8 @@ class UserService {
       following_id: followingId
     });
 
-    // TODO: Create notification for the followed user
-    // await notificationService.createFollowNotification(followingId, followerId);
+    // Create notification for the followed user
+    await notificationService.notifyFollow(followingId, followerId);
 
     return { message: 'Successfully followed user' };
   }
