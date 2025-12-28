@@ -7,6 +7,7 @@ const savedPostController = require('../controllers/savedPost.controller');
 const { authMiddleware, optionalAuth } = require('../middleware/auth.middleware');
 const { body } = require('express-validator');
 const { validate } = require('../middleware/validation.middleware');
+const { upload } = require('../config/upload');
 
 // Validation
 const postValidation = [
@@ -31,11 +32,11 @@ const commentValidation = [
 ];
 
 // Post Routes
-router.post('/', authMiddleware, postValidation, validate, postController.createPost);
+router.post('/', authMiddleware, upload.single('cover_image'), postValidation, validate, postController.createPost);
 router.get('/', optionalAuth, postController.getPosts);
 router.get('/search', optionalAuth, postController.searchPosts);
 router.get('/:id', optionalAuth, postController.getPost);
-router.put('/:id', authMiddleware, postValidation, validate, postController.updatePost);
+router.put('/:id', authMiddleware, upload.single('cover_image'), postValidation, validate, postController.updatePost);
 router.delete('/:id', authMiddleware, postController.deletePost);
 
 // Comment Routes (nested under posts)
