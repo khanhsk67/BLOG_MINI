@@ -1,7 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { mockPosts } from '@/lib/mock-posts'
 
-
+// Mock posts database
+const mockPosts = [
+  {
+    id: '1',
+    author_id: 'user-1',
+    author: {
+      id: 'user-1',
+      username: 'sarahchen',
+      display_name: 'Sarah Chen',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+    },
+    title: 'The Future of Design Systems in 2025',
+    slug: 'the-future-of-design-systems-in-2025',
+    excerpt: 'Exploring how AI and automation are reshaping the way we build design systems...',
+    content: 'The landscape of design systems is rapidly evolving...',
+    featured_image_url: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=400&fit=crop',
+    tags: ['design', 'technology', 'ai'],
+    status: 'published',
+    view_count: 342,
+    like_count: 28,
+    comment_count: 15,
+    published_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+]
 
 export async function GET(request: NextRequest) {
   try {
@@ -65,7 +88,6 @@ export async function POST(request: NextRequest) {
       author: {
         id: 'user-1',
         username: 'johndoe',
-        name: 'John Doe',
         display_name: 'John Doe',
         avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=johndoe',
       },
@@ -79,7 +101,7 @@ export async function POST(request: NextRequest) {
       view_count: 0,
       like_count: 0,
       comment_count: 0,
-      published_at: new Date().toISOString(),
+      published_at: status === 'published' ? new Date().toISOString() : null,
       created_at: new Date().toISOString(),
     }
 

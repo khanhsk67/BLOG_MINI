@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { Home, BookmarkIcon, Users, Compass, Settings } from 'lucide-react'
-import Link from 'next/link'
+import { Home, BookmarkIcon, Users, Compass, Settings } from "lucide-react";
+import Link from "next/link";
 
 const menuItems = [
-  { icon: Home, label: 'Home', href: '#' },
-  { icon: Compass, label: 'Explore', href: '#' },
-  { icon: BookmarkIcon, label: 'Saved', href: '#' },
-  { icon: Users, label: 'Following', href: '#' },
-  { icon: Settings, label: 'Settings', href: '#' },
-]
+  { icon: Home, label: "Home", href: "/home" },
+  { icon: Compass, label: "Explore", href: "/explore" },
+  { icon: BookmarkIcon, label: "Saved", href: "/saved" },
+  { icon: Users, label: "Following", href: "/following" },
+  { icon: Settings, label: "Settings", href: "/settings" },
+];
 
 export default function Sidebar() {
   return (
     <aside className="hidden lg:block w-64 h-fit sticky top-24">
       <nav className="space-y-2">
         {menuItems.map((item) => (
-          <Link 
+          <Link
             key={item.label}
             href={item.href}
             className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-secondary text-foreground transition group"
@@ -27,5 +27,5 @@ export default function Sidebar() {
         ))}
       </nav>
     </aside>
-  )
+  );
 }

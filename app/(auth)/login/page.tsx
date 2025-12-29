@@ -1,50 +1,57 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setIsLoading(true)
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
       // Call login API
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      })
+      });
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error?.message || 'Login failed')
+        const data = await response.json();
+        throw new Error(data.error?.message || "Login failed");
       }
 
-      const data = await response.json()
-      
-      // Store token
-      localStorage.setItem('authToken', data.tokens.access_token)
-      localStorage.setItem('refreshToken', data.tokens.refresh_token)
-      
-      // Redirect to home
-      router.push('/')
+      const data = await response.json();
+
+      // ⭐ THAY ĐỔI: Lưu vào COOKIE thay vì localStorage
+      // Lưu access token (7 ngày)
+      document.cookie = `authToken=${
+        data.tokens.access_token
+      }; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
+
+      // Lưu refresh token (30 ngày)
+      document.cookie = `refreshToken=${
+        data.tokens.refresh_token
+      }; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Strict`;
+
+      // ⭐ THAY ĐỔI: Redirect to /home instead of /
+      router.push("/home");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/5 flex items-center justify-center px-4 py-12">
@@ -53,16 +60,24 @@ export default function LoginPage() {
           {/* Logo/Branding */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary mb-4">
-              <span className="text-lg font-bold text-primary-foreground">MB</span>
+              <span className="text-lg font-bold text-primary-foreground">
+                MB
+              </span>
             </div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">MiniBlog</h1>
-            <p className="text-muted-foreground">Share your stories with the world</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              MiniBlog
+            </h1>
+            <p className="text-muted-foreground">
+              Share your stories with the world
+            </p>
           </div>
 
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Email Address</label>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Email Address
+              </label>
               <Input
                 type="email"
                 placeholder="you@example.com"
@@ -74,7 +89,9 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Password</label>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Password
+              </label>
               <Input
                 type="password"
                 placeholder="••••••••"
@@ -91,8 +108,12 @@ export default function LoginPage() {
               </div>
             )}
 
-            <Button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary/90">
-              {isLoading ? 'Signing in...' : 'Sign In'}
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-primary hover:bg-primary/90"
+            >
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
@@ -102,7 +123,9 @@ export default function LoginPage() {
               <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="px-2 bg-card text-muted-foreground">Or continue with</span>
+              <span className="px-2 bg-card text-muted-foreground">
+                Or continue with
+              </span>
             </div>
           </div>
 
@@ -118,8 +141,11 @@ export default function LoginPage() {
 
           {/* Sign Up Link */}
           <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
-            <Link href="/signup" className="font-semibold text-primary hover:text-primary/90 transition">
+            Don't have an account?{" "}
+            <Link
+              href="/signup"
+              className="font-semibold text-primary hover:text-primary/90 transition"
+            >
               Sign up for free
             </Link>
           </p>
@@ -133,5 +159,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

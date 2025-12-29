@@ -10,7 +10,7 @@ interface Comment {
   author: {
     name: string
     username: string
-    avatar?: string
+    avatar: string
   }
   content: string
   createdAt: Date
@@ -74,7 +74,11 @@ export default function CommentSection({ postId }: { postId: string }) {
       // fallback: optimistic local add
       const comment: Comment = {
         id: Date.now().toString(),
-        author: { name: CURRENT_USER.name, username: CURRENT_USER.username },
+        author: { 
+          name: CURRENT_USER.name, 
+          username: CURRENT_USER.username,
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John'
+        },
         content: newComment,
         createdAt: new Date(),
       }
@@ -153,7 +157,7 @@ export default function CommentSection({ postId }: { postId: string }) {
                 <div className="flex items-center gap-2">
                   {editingId === comment.id ? (
                     <>
-                      <Button size="sm" onClick={() => saveEdit(comment.id)} className="text-xs" >Save</Button>
+                      <Button size="sm" onClick={() => saveEdit(comment.id)} className="text-xs">Save</Button>
                       <Button size="sm" variant="ghost" onClick={cancelEdit} className="text-xs"><X className="w-3 h-3" /></Button>
                     </>
                   ) : (
@@ -218,7 +222,9 @@ export default function CommentSection({ postId }: { postId: string }) {
         {comments.map(comment => (
           <div key={comment.id}>
             <CommentItem comment={comment} />
-            {/* replies (if you want to render nested replies from API, implement grouping) */}
+            {comment.replies && comment.replies.map(reply => (
+              <CommentItem key={reply.id} comment={reply} isReply />
+            ))}
           </div>
         ))}
       </div>

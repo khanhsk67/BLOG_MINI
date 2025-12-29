@@ -33,9 +33,9 @@ interface PostCardProps {
 
 export default function PostCard({ post, onLike, onSave }: PostCardProps) {
   const [showComments, setShowComments] = useState(false)
-  
+
   const timeAgo = (date: Date) => {
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000)
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
     if (seconds < 60) return 'now'
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
@@ -48,8 +48,8 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
       <div className="p-4 border-b border-border">
         <div className="flex items-start justify-between">
           <div className="flex gap-3">
-            <img 
-              src={post.author.avatar || "/placeholder.svg"} 
+            <img
+              src={post.author.avatar || '/placeholder.svg'}
               alt={post.author.name}
               className="w-12 h-12 rounded-full object-cover"
             />
@@ -83,9 +83,12 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         </div>
 
         {post.image && (
-          <Link href={`/posts/${post.id}`} className="rounded-lg overflow-hidden bg-secondary aspect-video block overflow-hidden">
-            <img 
-              src={post.image || "/placeholder.svg"} 
+          <Link
+            href={`/posts/${post.id}`}
+            className="block rounded-lg overflow-hidden bg-secondary aspect-video"
+          >
+            <img
+              src={post.image || '/placeholder.svg'}
               alt={post.title}
               className="w-full h-full object-cover hover:scale-105 transition duration-300"
             />
@@ -95,7 +98,10 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         {/* Tags */}
         <div className="flex flex-wrap gap-2">
           {post.tags.map(tag => (
-            <span key={tag} className="text-xs bg-secondary text-primary px-2 py-1 rounded-full hover:bg-muted transition cursor-pointer">
+            <span
+              key={tag}
+              className="text-xs bg-secondary text-primary px-2 py-1 rounded-full hover:bg-muted transition cursor-pointer"
+            >
               #{tag}
             </span>
           ))}
@@ -114,11 +120,14 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
           variant="ghost"
           size="sm"
           onClick={() => onLike(post.id)}
-          className={`flex-1 flex items-center gap-2 ${post.isLiked ? 'text-accent' : 'text-muted-foreground'}`}
+          className={`flex-1 flex items-center gap-2 ${
+            post.isLiked ? 'text-accent' : 'text-muted-foreground'
+          }`}
         >
           <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
           <span className="text-xs">Like</span>
         </Button>
+
         <Button
           variant="ghost"
           size="sm"
@@ -128,22 +137,30 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
           <MessageCircle className="w-4 h-4" />
           <span className="text-xs">Comment</span>
         </Button>
+
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onSave(post.id)}
-          className={`flex-1 flex items-center gap-2 ${post.isSaved ? 'text-primary' : 'text-muted-foreground'}`}
+          className={`flex-1 flex items-center gap-2 ${
+            post.isSaved ? 'text-primary' : 'text-muted-foreground'
+          }`}
         >
           <Bookmark className={`w-4 h-4 ${post.isSaved ? 'fill-current' : ''}`} />
           <span className="text-xs">Save</span>
         </Button>
-        <Button variant="ghost" size="sm" className="flex-1 flex items-center gap-2 text-muted-foreground">
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex-1 flex items-center gap-2 text-muted-foreground"
+        >
           <Share2 className="w-4 h-4" />
           <span className="text-xs">Share</span>
         </Button>
       </div>
 
-      {/* Comments Section */}
+      {/* Comments */}
       {showComments && (
         <div className="border-t border-border">
           <CommentSection postId={post.id} />

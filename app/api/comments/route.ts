@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { mockComments } from '@/lib/mock-comments'
+// Mock comments database
+const mockComments: any[] = []
 
 export async function GET(request: NextRequest) {
   try {
