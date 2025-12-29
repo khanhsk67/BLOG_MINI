@@ -30,8 +30,9 @@ export default function ProfilePage() {
 
   const loadProfile = async () => {
     try {
-      // Gọi API để lấy thông tin user
+      // Call API to get user info
       const response = await fetch("/api/user/profile", {
+        credentials: 'include', // ✅ Add this for cookies
         headers: {
           "Content-Type": "application/json",
         },
@@ -49,7 +50,7 @@ export default function ProfilePage() {
       });
     } catch (err) {
       console.error("Error loading profile:", err);
-      // Nếu không có API, dùng dữ liệu giả
+      // If no API, use mock data
       setProfile({
         displayName: "John Doe",
         username: "johndoe",
@@ -73,9 +74,10 @@ export default function ProfilePage() {
     setIsLoading(true);
 
     try {
-      // Gọi API để update profile
+      // Call API to update profile
       const response = await fetch("/api/user/profile", {
         method: "PATCH",
+        credentials: 'include', // ✅ Add this for cookies
         headers: {
           "Content-Type": "application/json",
         },
@@ -90,7 +92,7 @@ export default function ProfilePage() {
       setSuccess("Profile updated successfully!");
       setIsEditing(false);
 
-      // Tắt thông báo sau 3 giây
+      // Hide notification after 3 seconds
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update profile");
@@ -98,7 +100,6 @@ export default function ProfilePage() {
       setIsLoading(false);
     }
   };
-
   const handleLogout = () => {
     // Xóa cookie
     document.cookie = "authToken=; path=/; max-age=0";
