@@ -1,32 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { mockComments } from '@/lib/mock-comments'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
     const body = await request.json()
-    const { content } = body
+    const authHeader = request.headers.get('Authorization')
 
-    if (!content) {
+    if (!authHeader) {
       return NextResponse.json(
-        { error: { message: 'content is required', code: 'VALIDATION_ERROR', status: 422 } },
-        { status: 422 }
+        { error: { message: 'Unauthorized', code: 'UNAUTHORIZED', status: 401 } },
+        { status: 401 }
       )
     }
 
-    const comment = mockComments.find(c => c.id === id)
-    if (!comment) {
-      return NextResponse.json(
-        { error: { message: 'Comment not found', code: 'NOT_FOUND', status: 404 } },
-        { status: 404 }
-      )
+    const response = await fetch(`${API_URL}/comments/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader,
+      },
+      body: JSON.stringify(body),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status })
     }
 
-    comment.content = content
-    comment.is_edited = true
-
-    return NextResponse.json(comment, { status: 200 })
+    return NextResponse.json(data, { status: response.status })
   } catch (error) {
+    console.error('Comment PUT API error:', error)
     return NextResponse.json(
       { error: { message: 'Failed to update comment', code: 'SERVER_ERROR', status: 500 } },
       { status: 500 }
@@ -37,18 +43,32 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
-    const index = mockComments.findIndex(c => c.id === id)
-    if (index === -1) {
+    const authHeader = request.headers.get('Authorization')
+
+    if (!authHeader) {
       return NextResponse.json(
-        { error: { message: 'Comment not found', code: 'NOT_FOUND', status: 404 } },
-        { status: 404 }
+        { error: { message: 'Unauthorized', code: 'UNAUTHORIZED', status: 401 } },
+        { status: 401 }
       )
     }
 
-    mockComments.splice(index, 1)
+    const response = await fetch(`${API_URL}/comments/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader,
+      },
+    })
 
-    return NextResponse.json({ message: 'Comment deleted', comment_id: id }, { status: 200 })
+    const data = await response.json()
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status })
+    }
+
+    return NextResponse.json(data, { status: response.status })
   } catch (error) {
+    console.error('Comment DELETE API error:', error)
     return NextResponse.json(
       { error: { message: 'Failed to delete comment', code: 'SERVER_ERROR', status: 500 } },
       { status: 500 }

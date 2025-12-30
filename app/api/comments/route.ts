@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Mock comments database
-const mockComments: any[] = []
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const postId = searchParams.get('post_id')
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '20')
 
     if (!postId) {
       return NextResponse.json(
@@ -17,23 +14,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const postComments = mockComments.filter(c => c.post_id === postId)
-    const start = (page - 1) * limit
-    const paginatedComments = postComments.slice(start, start + limit)
-
-    return NextResponse.json(
-      {
-        comments: paginatedComments,
-        pagination: {
-          current_page: page,
-          total_pages: Math.ceil(postComments.length / limit),
-          total_comments: postComments.length,
-          per_page: limit,
-        },
+    const response = await fetch(`${API_URL}/posts/${postId}/comments?${searchParams.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      { status: 200 }
-    )
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status })
+    }
+
+    return NextResponse.json(data, { status: response.status })
   } catch (error) {
+    console.error('Comments GET API error:', error)
     return NextResponse.json(
       { error: { message: 'Failed to fetch comments', code: 'SERVER_ERROR', status: 500 } },
       { status: 500 }
@@ -44,36 +40,41 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { post_id, content, parent_comment_id } = body
+    const { post_id } = body
+    const authHeader = request.headers.get('Authorization')
 
-    if (!post_id || !content) {
+    if (!authHeader) {
       return NextResponse.json(
-        { error: { message: 'post_id and content are required', code: 'VALIDATION_ERROR', status: 422 } },
+        { error: { message: 'Unauthorized', code: 'UNAUTHORIZED', status: 401 } },
+        { status: 401 }
+      )
+    }
+
+    if (!post_id) {
+      return NextResponse.json(
+        { error: { message: 'post_id is required', code: 'VALIDATION_ERROR', status: 422 } },
         { status: 422 }
       )
     }
 
-    const newComment = {
-      id: `comment-${Date.now()}`,
-      post_id,
-      user_id: 'user-1',
-      user: {
-        id: 'user-1',
-        username: 'johndoe',
-        display_name: 'John Doe',
-        avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=johndoe',
+    const response = await fetch(`${API_URL}/posts/${post_id}/comments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader,
       },
-      content,
-      parent_comment_id: parent_comment_id || null,
-      reply_count: 0,
-      is_edited: false,
-      created_at: new Date().toISOString(),
+      body: JSON.stringify(body),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status })
     }
 
-    mockComments.push(newComment)
-
-    return NextResponse.json(newComment, { status: 201 })
+    return NextResponse.json(data, { status: response.status })
   } catch (error) {
+    console.error('Comments POST API error:', error)
     return NextResponse.json(
       { error: { message: 'Failed to create comment', code: 'SERVER_ERROR', status: 500 } },
       { status: 500 }
