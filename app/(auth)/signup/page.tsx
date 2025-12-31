@@ -84,19 +84,19 @@ export default function SignupPage() {
 
       const data = await response.json();
 
-      // ⭐ UPDATE: Save to COOKIES so Middleware can see the user
-      // Set Access Token (Valid for 7 days)
+      // ⭐ THAY ĐỔI: Lưu vào COOKIE thay vì localStorage
+      // Lưu access token
       document.cookie = `authToken=${
         data.tokens.access_token
       }; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
 
-      // Set Refresh Token (Valid for 30 days)
+      // Lưu refresh token
       document.cookie = `refreshToken=${
         data.tokens.refresh_token
       }; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Strict`;
 
       // Redirect to home
-      router.push("/home");
+      router.push("/home"); // ⭐ Chuyển về /home thay vì /
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
