@@ -11,6 +11,7 @@ const adminRoutes = require('./admin.routes');
 const uploadRoutes = require('./upload.routes');
 const followRoutes = require('./follow.routes');
 const messageRoutes = require('./message.routes');
+const searchRoutes = require('./search.routes');
 
 /**
  * API Routes
@@ -36,6 +37,7 @@ router.use('/admin', adminRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/users', followRoutes);
 router.use('/messages', messageRoutes);
+router.use('/search', searchRoutes);
 
 // API documentation (placeholder)
 router.get('/', (req, res) => {
@@ -53,6 +55,7 @@ router.get('/', (req, res) => {
       upload: '/api/upload',
       follow: '/api/users/:userId/follow',
       messages: '/api/messages',
+      search: '/api/search',
       health: '/api/health'
     }
   });

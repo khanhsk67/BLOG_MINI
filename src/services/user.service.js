@@ -89,7 +89,10 @@ class UserService {
     return {
       posts_count: postsCount,
       followers_count: followersCount,
-      following_count: followingCount
+      following_count: followingCount,
+      postsCount, // For frontend compatibility
+      followersCount,
+      followingCount
     };
   }
 

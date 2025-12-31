@@ -43,6 +43,7 @@ const commentValidation = [
 router.post('/', authMiddleware, upload.single('cover_image'), postValidation, validate, postController.createPost);
 router.get('/', optionalAuth, postController.getPosts);
 router.get('/search', optionalAuth, postController.searchPosts);
+router.get('/my-posts', authMiddleware, postController.getMyPosts); // Get current user's posts
 router.get('/:id', optionalAuth, postController.getPost);
 router.put('/:id', authMiddleware, upload.single('cover_image'), postValidation, validate, postController.updatePost);
 router.delete('/:id', authMiddleware, postController.deletePost);

@@ -119,6 +119,29 @@ class PostController {
             next(error);
         }
     }
+
+    // GET /api/posts/my-posts - Get current user's posts
+    async getMyPosts(req, res, next) {
+        try {
+            const filters = {
+                page: parseInt(req.query.page) || 1,
+                limit: Math.min(parseInt(req.query.limit) || 50, 100),
+                status: req.query.status, // Allow filtering by draft/published
+                sort: req.query.sort || 'latest',
+                author: req.user.id, // Only current user's posts
+                userId: req.user.id
+            };
+
+            const result = await postService.getPosts(filters);
+            res.status(200).json({
+                success: true,
+                data: result.data,
+                pagination: result.pagination
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = new PostController();

@@ -195,6 +195,21 @@ class UserController {
       next(error);
     }
   }
+
+  /**
+   * GET /api/users/me/stats
+   * Get current user's statistics
+   */
+  async getMyStats(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const stats = await userService.getUserStats(userId);
+
+      return successResponse(res, stats, 'User statistics retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new UserController();

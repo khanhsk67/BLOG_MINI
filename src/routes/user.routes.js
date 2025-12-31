@@ -45,6 +45,12 @@ router.get('/search', searchUsersValidation, validate, userController.searchUser
 // Get user profile by username
 router.get('/username/:username', optionalAuth, userController.getUserByUsername);
 
+// Get current user's statistics
+router.get('/me/stats', authMiddleware, userController.getMyStats);
+
+// Get current user's posts
+router.get('/me/posts', authMiddleware, require('../controllers/post.controller').getMyPosts);
+
 // Update current user's profile
 router.put('/profile', authMiddleware, updateProfileValidation, validate, userController.updateProfile);
 
