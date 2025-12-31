@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import SearchBar from "@/components/search-bar";
 
 export default function Header() {
   const router = useRouter();
@@ -33,20 +34,15 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card shadow-sm">
       <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-8 flex-1">
           <Link
             href="/home"
-            className="text-2xl font-bold text-primary hover:opacity-80 transition"
+            className="text-2xl font-bold text-primary hover:opacity-80 transition flex-shrink-0"
           >
             MiniBlog
           </Link>
-          <div className="hidden md:flex items-center gap-2 bg-secondary rounded-full px-4 py-2 w-64">
-            <Search className="w-4 h-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search posts, people..."
-              className="border-0 bg-transparent outline-none text-sm"
-            />
+          <div className="hidden md:block flex-1 max-w-xl">
+            <SearchBar placeholder="Search posts, users..." />
           </div>
         </div>
 
