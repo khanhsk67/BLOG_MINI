@@ -49,6 +49,9 @@ export default function LoginPage() {
         data.tokens.refresh_token
       }; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Strict`;
 
+      // ⭐ LƯU TOKEN VÀO LOCALSTORAGE (để lấy user ID cho permission checks)
+      localStorage.setItem('token', data.tokens.access_token);
+
       // ⭐ Chuyển hướng đến trang /home sau khi đăng nhập thành công
       router.push("/home");
     } catch (err) {

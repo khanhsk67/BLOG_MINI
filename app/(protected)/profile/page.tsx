@@ -123,9 +123,11 @@ export default function ProfilePage() {
             {/* Avatar */}
             <div className="flex justify-between items-start -mt-16 mb-6">
               <div className="relative">
-                <div className="w-32 h-32 rounded-full bg-accent border-4 border-card flex items-center justify-center text-4xl font-bold text-accent-foreground">
-                  {profile.displayName.charAt(0).toUpperCase() || "U"}
-                </div>
+                <img
+                  src={profile.avatar || "/default-avatar.jpg"}
+                  alt={profile.displayName}
+                  className="w-32 h-32 rounded-full border-4 border-card object-cover"
+                />
               </div>
 
               <div className="mt-20 space-x-3">

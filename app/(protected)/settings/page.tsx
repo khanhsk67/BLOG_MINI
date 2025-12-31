@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
@@ -13,6 +13,8 @@ import {
   Shield,
   Trash2,
   LogOut,
+  Upload,
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,9 @@ interface TabItem {
 export default function SettingsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("profile");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string>("/default-avatar.jpg");
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Profile settings
   const [profile, setProfile] = useState({
@@ -55,6 +60,65 @@ export default function SettingsPage() {
     showEmail: false,
     showActivity: true,
   });
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    try {
+      setIsUploadingAvatar(true);
+
+      const authToken = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('authToken='))
+        ?.split('=')[1];
+
+      if (!authToken) {
+        alert('Please login to upload avatar');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      const response = await fetch('/api/upload/avatar', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload avatar');
+      }
+
+      const data = await response.json();
+
+      // Update avatar URL with the new uploaded image
+      if (data.avatar_url || data.url) {
+        setAvatarUrl(data.avatar_url || data.url);
+        alert('Avatar updated successfully!');
+      }
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      alert('Failed to upload avatar. Please try again.');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   const handleLogout = () => {
     document.cookie = "authToken=; path=/; max-age=0";
@@ -133,6 +197,61 @@ export default function SettingsPage() {
                     <h2 className="text-xl font-bold text-foreground mb-4">
                       Profile Information
                     </h2>
+
+                    {/* Avatar Upload Section */}
+                    <div className="mb-6 p-4 bg-secondary rounded-lg">
+                      <label className="block text-sm font-medium text-foreground mb-3">
+                        Profile Picture
+                      </label>
+                      <div className="flex items-center gap-4">
+                        {/* Avatar Preview */}
+                        <div className="relative">
+                          <img
+                            src={avatarUrl}
+                            alt="Avatar"
+                            className="w-24 h-24 rounded-full object-cover border-2 border-border"
+                          />
+                          {isUploadingAvatar && (
+                            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Upload Button */}
+                        <div className="flex-1">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarUpload}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploadingAvatar}
+                            variant="outline"
+                            className="gap-2"
+                          >
+                            {isUploadingAvatar ? (
+                              <>
+                                <Upload className="w-4 h-4 animate-pulse" />
+                                Uploading...
+                              </>
+                            ) : (
+                              <>
+                                <Camera className="w-4 h-4" />
+                                Upload New Avatar
+                              </>
+                            )}
+                          </Button>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            JPG, PNG or GIF. Max size 5MB.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="space-y-4">
                       <div>

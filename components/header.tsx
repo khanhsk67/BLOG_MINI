@@ -58,9 +58,11 @@ export default function Header() {
 
           <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             <DropdownMenuTrigger asChild>
-              <button className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer hover:opacity-90 transition font-semibold text-sm">
-                JD
-              </button>
+              <img
+                src="/default-avatar.jpg"
+                alt="User avatar"
+                className="w-9 h-9 rounded-full object-cover cursor-pointer hover:opacity-90 transition"
+              />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem asChild className="cursor-pointer">

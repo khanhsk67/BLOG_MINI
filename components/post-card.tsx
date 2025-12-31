@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import CommentSection from '@/components/comment-section'
+import FollowButton from '@/components/follow-button'
 
 interface PostCardProps {
   post: {
@@ -26,13 +27,19 @@ interface PostCardProps {
     comments: number
     isLiked: boolean
     isSaved: boolean
+    isFollowing?: boolean
   }
   onLike: (postId: string) => void
   onSave: (postId: string) => void
+  currentUserId?: string
 }
 
-export default function PostCard({ post, onLike, onSave }: PostCardProps) {
+export default function PostCard({ post, onLike, onSave, currentUserId }: PostCardProps) {
   const [showComments, setShowComments] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(post.isFollowing || false)
+
+  // Don't show follow button if viewing own post
+  const showFollowButton = currentUserId && currentUserId !== post.author.id
 
   const timeAgo = (date: Date) => {
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
@@ -47,9 +54,9 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-start justify-between">
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-1">
             <img
-              src={post.author.avatar || '/placeholder.svg'}
+              src={post.author.avatar || '/default-avatar.jpg'}
               alt={post.author.name}
               className="w-12 h-12 rounded-full object-cover"
             />
@@ -61,51 +68,57 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
               <p className="text-xs text-muted-foreground">{timeAgo(post.createdAt)}</p>
             </div>
           </div>
-          <button className="p-1 hover:bg-secondary rounded-full transition">
-            <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-          </button>
+          <div className="flex items-center gap-2">
+            {showFollowButton && (
+              <FollowButton
+                userId={post.author.id}
+                username={post.author.username}
+                initialIsFollowing={isFollowing}
+                onFollowChange={setIsFollowing}
+                variant="default"
+                size="sm"
+              />
+            )}
+            <button className="p-1 hover:bg-secondary rounded-full transition">
+              <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-4 py-3 space-y-3">
-        <div>
-          <h3 className="text-lg font-bold text-foreground mb-2">
-            <Link href={`/posts/${post.id}`} className="hover:underline">
-              {post.title}
-            </Link>
-          </h3>
-          <p className="text-sm text-foreground line-clamp-2">
-            <Link href={`/posts/${post.id}`} className="hover:underline">
-              {post.excerpt}
-            </Link>
+      <div className="space-y-3">
+        {/* Post Content */}
+        <div className="px-4 pt-3">
+          <p className="text-foreground whitespace-pre-wrap">
+            {post.content}
           </p>
         </div>
 
+        {/* Cover Image - Full Width */}
         {post.image && (
-          <Link
-            href={`/posts/${post.id}`}
-            className="block rounded-lg overflow-hidden bg-secondary aspect-video"
-          >
+          <Link href={`/posts/${post.id}`} className="block">
             <img
-              src={post.image || '/placeholder.svg'}
-              alt={post.title}
-              className="w-full h-full object-cover hover:scale-105 transition duration-300"
+              src={post.image}
+              alt="Post image"
+              className="w-full object-cover max-h-96"
             />
           </Link>
         )}
 
         {/* Tags */}
-        <div className="flex flex-wrap gap-2">
-          {post.tags.map(tag => (
-            <span
-              key={tag}
-              className="text-xs bg-secondary text-primary px-2 py-1 rounded-full hover:bg-muted transition cursor-pointer"
-            >
-              #{tag}
-            </span>
-          ))}
-        </div>
+        {post.tags.length > 0 && (
+          <div className="px-4 pb-3 flex flex-wrap gap-2">
+            {post.tags.map(tag => (
+              <span
+                key={tag}
+                className="text-xs bg-secondary text-primary px-2 py-1 rounded-full hover:bg-muted transition cursor-pointer"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Stats */}
@@ -163,7 +176,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
       {/* Comments */}
       {showComments && (
         <div className="border-t border-border">
-          <CommentSection postId={post.id} />
+          <CommentSection postId={post.id} postAuthorId={post.author.id} />
         </div>
       )}
     </div>

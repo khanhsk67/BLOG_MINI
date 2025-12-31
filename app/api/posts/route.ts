@@ -7,12 +7,21 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const queryString = searchParams.toString()
 
+    // Get auth header if available (optional for GET)
+    const authHeader = request.headers.get('Authorization')
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    if (authHeader) {
+      headers['Authorization'] = authHeader
+    }
+
     // Forward request to backend API
     const response = await fetch(`${API_URL}/posts${queryString ? `?${queryString}` : ''}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     })
 
     const data = await response.json()

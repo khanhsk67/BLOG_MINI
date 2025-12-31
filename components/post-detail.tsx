@@ -23,7 +23,7 @@ interface Post {
 
 export default function PostDetail({ post }: { post: Post }) {
   const authorName = post.author?.name || post.author?.display_name || post.author?.username || 'Unknown'
-  const authorAvatar = post.author?.avatar || post.author?.avatar_url || '/placeholder.svg'
+  const authorAvatar = post.author?.avatar || post.author?.avatar_url || '/default-avatar.jpg'
   const image = post.image || post.featured_image_url
   const createdAt = post.createdAt || post.created_at || post.published_at
 
