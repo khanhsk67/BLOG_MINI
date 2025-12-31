@@ -30,7 +30,8 @@ class PostController {
                 author: req.query.author,
                 sort: req.query.sort || 'latest',
                 query: req.query.query,
-                userId: req.user?.id
+                userId: req.user?.id,
+                following: req.query.following === 'true'
             };
 
             const result = await postService.getPosts(filters);

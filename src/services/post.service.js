@@ -1,4 +1,4 @@
-const { Post, User, Tag, PostTag, Comment, Reaction, sequelize } = require('../models');
+const { Post, User, Tag, PostTag, Comment, Reaction, Follow, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 class PostService {
@@ -6,10 +6,38 @@ class PostService {
     async createPost(authorId, postData) {
         const { title, content, excerpt, featured_image_url, tags, status } = postData;
 
+        // Generate slug from title if not provided
+        let slug = postData.slug;
+        if (!slug && title) {
+            slug = title
+                .toLowerCase()
+                .normalize('NFD') // Normalize unicode characters
+                .replace(/[\u0300-\u036f]/g, '') // Remove diacritics (accents)
+                .replace(/đ/g, 'd') // Replace Vietnamese đ
+                .replace(/[^a-z0-9\s-]/g, '') // Keep only a-z, 0-9, spaces, hyphens
+                .trim()
+                .replace(/\s+/g, '-') // Replace spaces with hyphens
+                .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+                .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+                .substring(0, 255); // Limit to 255 characters
+
+            // If slug is empty after sanitization, use timestamp
+            if (!slug) {
+                slug = `post-${Date.now()}`;
+            }
+
+            // Ensure uniqueness by appending timestamp if slug exists
+            const existingPost = await Post.findOne({ where: { slug } });
+            if (existingPost) {
+                slug = `${slug}-${Date.now()}`;
+            }
+        }
+
         // Create post
         const post = await Post.create({
             author_id: authorId,
             title,
+            slug,
             content,
             excerpt,
             featured_image_url,
@@ -98,7 +126,8 @@ class PostService {
             author,
             sort = 'latest',
             userId,
-            query
+            query,
+            following = false
         } = filters;
 
         const offset = (page - 1) * limit;
@@ -119,6 +148,34 @@ class PostService {
             const authorUser = await User.findOne({ where: { username: author } });
             if (authorUser) {
                 where.author_id = authorUser.id;
+            }
+        }
+
+        // Filter by following (only show posts from users that current user follows)
+        if (following && userId) {
+            const followedUsers = await Follow.findAll({
+                where: { follower_id: userId },
+                attributes: ['following_id']
+            });
+
+            const followedUserIds = followedUsers.map(f => f.following_id);
+
+            // Only show posts from followed users
+            if (followedUserIds.length > 0) {
+                where.author_id = { [Op.in]: followedUserIds };
+            } else {
+                // No followed users, return empty result
+                return {
+                    posts: [],
+                    pagination: {
+                        current_page: page,
+                        total_pages: 0,
+                        total_posts: 0,
+                        per_page: limit,
+                        has_next: false,
+                        has_prev: false
+                    }
+                };
             }
         }
 
@@ -175,10 +232,28 @@ class PostService {
                 const likeCount = await Reaction.count({ where: { post_id: post.id } });
                 const commentCount = await Comment.count({ where: { post_id: post.id } });
 
+                // Check if user liked/saved (if authenticated)
+                let isLiked = false;
+                let isSaved = false;
+
+                if (userId) {
+                    const { SavedPost } = require('../models');
+
+                    isLiked = await Reaction.findOne({
+                        where: { post_id: post.id, user_id: userId }
+                    }) !== null;
+
+                    isSaved = await SavedPost.findOne({
+                        where: { post_id: post.id, user_id: userId }
+                    }) !== null;
+                }
+
                 return {
                     ...post.toJSON(),
                     like_count: likeCount,
-                    comment_count: commentCount
+                    comment_count: commentCount,
+                    is_liked: isLiked,
+                    is_saved: isSaved
                 };
             })
         );

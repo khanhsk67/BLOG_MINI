@@ -72,8 +72,10 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING(500),
       allowNull: true,
       validate: {
-        isUrl: {
-          msg: 'Featured image URL must be a valid URL'
+        isUrlOrNull(value) {
+          if (value !== null && value !== '' && !value.match(/^https?:\/\/.+/)) {
+            throw new Error('Featured image URL must be a valid URL');
+          }
         }
       }
     },
@@ -94,7 +96,7 @@ module.exports = (sequelize) => {
       allowNull: false,
       validate: {
         min: {
-          args: 0,
+          args: [0],
           msg: 'View count cannot be negative'
         }
       }

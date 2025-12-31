@@ -188,15 +188,29 @@ class CommentService {
    * Delete comment
    */
   async deleteComment(commentId, userId, isAdmin = false) {
-    const comment = await Comment.findByPk(commentId);
+    const comment = await Comment.findByPk(commentId, {
+      include: [
+        {
+          model: Post,
+          as: 'post',
+          attributes: ['id', 'author_id']
+        }
+      ]
+    });
 
     if (!comment) {
       throw new NotFoundError('Comment');
     }
 
-    // Check ownership or admin
-    if (comment.user_id !== userId && !isAdmin) {
-      throw new ForbiddenError('You can only delete your own comments');
+    // Check permissions:
+    // 1. Comment owner can delete their own comment
+    // 2. Post author can delete any comment in their post
+    // 3. Admin can delete any comment
+    const isCommentOwner = comment.user_id === userId;
+    const isPostOwner = comment.post && comment.post.author_id === userId;
+
+    if (!isCommentOwner && !isPostOwner && !isAdmin) {
+      throw new ForbiddenError('You can only delete your own comments or comments in your posts');
     }
 
     await comment.destroy();

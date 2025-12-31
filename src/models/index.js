@@ -11,6 +11,7 @@ const PostTag = require('./PostTag')(sequelize);
 const Follow = require('./Follow')(sequelize);
 const Notification = require('./Notification')(sequelize);
 const SavedPost = require('./SavedPost')(sequelize);
+const Message = require('./Message')(sequelize);
 
 // 1. USER <-> POST (One-to-Many)
 User.hasMany(Post, {
@@ -197,6 +198,28 @@ SavedPost.belongsTo(Post, {
     as: 'post'
 });
 
+// 14. USER <-> MESSAGE (One-to-Many) - Sent Messages
+User.hasMany(Message, {
+    foreignKey: 'sender_id',
+    as: 'sent_messages',
+    onDelete: 'CASCADE'
+});
+Message.belongsTo(User, {
+    foreignKey: 'sender_id',
+    as: 'sender'
+});
+
+// 15. USER <-> MESSAGE (One-to-Many) - Received Messages
+User.hasMany(Message, {
+    foreignKey: 'recipient_id',
+    as: 'received_messages',
+    onDelete: 'CASCADE'
+});
+Message.belongsTo(User, {
+    foreignKey: 'recipient_id',
+    as: 'recipient'
+});
+
 
 /**
  * Sync database - Create/Update tables
@@ -236,6 +259,7 @@ module.exports = {
     Follow,
     Notification,
     SavedPost,
+    Message,
 
     // Utility
     syncDatabase

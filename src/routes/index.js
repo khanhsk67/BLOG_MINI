@@ -9,6 +9,8 @@ const commentRoutes = require('./comment.routes');
 const notificationRoutes = require('./notification.routes');
 const adminRoutes = require('./admin.routes');
 const uploadRoutes = require('./upload.routes');
+const followRoutes = require('./follow.routes');
+const messageRoutes = require('./message.routes');
 
 /**
  * API Routes
@@ -32,6 +34,8 @@ router.use('/comments', commentRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/admin', adminRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/users', followRoutes);
+router.use('/messages', messageRoutes);
 
 // API documentation (placeholder)
 router.get('/', (req, res) => {
@@ -47,6 +51,8 @@ router.get('/', (req, res) => {
       notifications: '/api/notifications',
       admin: '/api/admin',
       upload: '/api/upload',
+      follow: '/api/users/:userId/follow',
+      messages: '/api/messages',
       health: '/api/health'
     }
   });

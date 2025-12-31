@@ -14,7 +14,15 @@ const postValidation = [
     body('title').isLength({ min: 1, max: 200 }).trim(),
     body('content').isLength({ min: 1, max: 50000 }),
     body('excerpt').optional().isLength({ max: 300 }).trim(),
-    body('featured_image_url').optional().isURL(),
+    body('featured_image_url')
+        .optional({ nullable: true, checkFalsy: true })
+        .custom((value) => {
+            // Allow null, undefined, or empty string
+            if (!value) return true;
+            // If value exists, must be valid URL
+            return /^https?:\/\/.+/.test(value);
+        })
+        .withMessage('Featured image URL must be a valid URL'),
     body('tags').optional().isArray({ min: 1, max: 5 }),
     body('tags.*').isString().trim(),
     body('status').optional().isIn(['draft', 'published'])
