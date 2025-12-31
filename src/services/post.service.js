@@ -121,19 +121,28 @@ class PostService {
         const {
             page = 1,
             limit = 20,
-            status = 'published',
+            status,
             tag,
             author,
             sort = 'latest',
             userId,
             query,
-            following = false
+            following = false,
+            includeAllStatus = false  // New option to include all statuses
         } = filters;
 
         const offset = (page - 1) * limit;
 
         // Build where clause
-        const where = { status };
+        const where = {};
+
+        // Filter by status - default to 'published' unless includeAllStatus is true
+        if (!includeAllStatus) {
+            where.status = status || 'published';
+        } else if (status) {
+            // If includeAllStatus is true but status is explicitly provided, use it
+            where.status = status;
+        }
 
         // Search by query
         if (query) {

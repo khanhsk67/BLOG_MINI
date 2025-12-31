@@ -4,19 +4,19 @@ const { User } = require('../models');
 
 /**
  * Authentication middleware - Verify JWT token
- * Requires valid JWT token in Authorization header
+ * Supports token from Authorization header or cookies
  */
 const authMiddleware = async (req, res, next) => {
   try {
-    // Get token from header
+    // Get token from Authorization header or cookies
+    let token = null;
+
     const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new AuthenticationError('No token provided. Please log in.');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.cookies && req.cookies.authToken) {
+      token = req.cookies.authToken;
     }
-
-    // Extract token
-    const token = authHeader.split(' ')[1];
 
     if (!token) {
       throw new AuthenticationError('No token provided. Please log in.');
@@ -58,19 +58,22 @@ const authMiddleware = async (req, res, next) => {
 /**
  * Optional authentication middleware
  * Attaches user if token is valid, but doesn't require it
+ * Supports token from Authorization header or cookies
  */
 const optionalAuth = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    // Get token from Authorization header or cookies
+    let token = null;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      // No token provided - continue without user
-      return next();
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.cookies && req.cookies.authToken) {
+      token = req.cookies.authToken;
     }
 
-    const token = authHeader.split(' ')[1];
-
     if (!token) {
+      // No token provided - continue without user
       return next();
     }
 

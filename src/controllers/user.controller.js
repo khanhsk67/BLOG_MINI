@@ -197,6 +197,21 @@ class UserController {
   }
 
   /**
+   * GET /api/users/me/profile
+   * Get current user's profile
+   */
+  async getMyProfile(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const user = await userService.getUserById(userId, userId);
+
+      return successResponse(res, user, 'Profile retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * GET /api/users/me/stats
    * Get current user's statistics
    */

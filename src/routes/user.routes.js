@@ -45,6 +45,9 @@ router.get('/search', searchUsersValidation, validate, userController.searchUser
 // Get user profile by username
 router.get('/username/:username', optionalAuth, userController.getUserByUsername);
 
+// Get current user's profile (must be before /:id)
+router.get('/me/profile', authMiddleware, userController.getMyProfile);
+
 // Get current user's statistics
 router.get('/me/stats', authMiddleware, userController.getMyStats);
 
@@ -52,7 +55,7 @@ router.get('/me/stats', authMiddleware, userController.getMyStats);
 router.get('/me/posts', authMiddleware, require('../controllers/post.controller').getMyPosts);
 
 // Update current user's profile
-router.put('/profile', authMiddleware, updateProfileValidation, validate, userController.updateProfile);
+router.put('/me/profile', authMiddleware, updateProfileValidation, validate, userController.updateProfile);
 
 // Get user profile by ID
 router.get('/:id', optionalAuth, userController.getUserProfile);

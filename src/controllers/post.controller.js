@@ -129,13 +129,14 @@ class PostController {
                 status: req.query.status, // Allow filtering by draft/published
                 sort: req.query.sort || 'latest',
                 author: req.user.id, // Only current user's posts
-                userId: req.user.id
+                userId: req.user.id,
+                includeAllStatus: !req.query.status // Include all statuses if not explicitly filtered
             };
 
             const result = await postService.getPosts(filters);
             res.status(200).json({
                 success: true,
-                data: result.data,
+                data: result.posts,
                 pagination: result.pagination
             });
         } catch (error) {

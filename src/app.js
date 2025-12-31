@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 const swaggerUi = require('swagger-ui-express');
 require('dotenv').config();
 
@@ -34,6 +35,9 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
+
+// Cookie parser middleware
+app.use(cookieParser());
 
 // Body parser middleware
 app.use(express.json({ limit: '10mb' }));
