@@ -37,6 +37,7 @@ interface PostCardProps {
 export default function PostCard({ post, onLike, onSave, currentUserId }: PostCardProps) {
   const [showComments, setShowComments] = useState(false)
   const [isFollowing, setIsFollowing] = useState(post.isFollowing || false)
+  const [imageError, setImageError] = useState(false)
 
   // Don't show follow button if viewing own post
   const showFollowButton = currentUserId && currentUserId !== post.author.id
@@ -96,12 +97,13 @@ export default function PostCard({ post, onLike, onSave, currentUserId }: PostCa
         </div>
 
         {/* Cover Image - Full Width */}
-        {post.image && (
+        {post.image && !imageError && (
           <Link href={`/posts/${post.id}`} className="block">
             <img
               src={post.image}
               alt="Post image"
               className="w-full object-cover max-h-96"
+              onError={() => setImageError(true)}
             />
           </Link>
         )}

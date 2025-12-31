@@ -45,7 +45,7 @@ export default function ProfilePage() {
   const loadProfile = async () => {
     try {
       // Call API to get user info
-      const response = await fetch("http://localhost:3000/api/users/profile", {
+      const response = await fetch("http://localhost:3000/api/users/me/profile", {
         credentials: 'include', // ✅ Add this for cookies
         headers: {
           "Content-Type": "application/json",
@@ -55,12 +55,13 @@ export default function ProfilePage() {
       if (!response.ok) throw new Error("Failed to load profile");
 
       const data = await response.json();
+      const userData = data.data?.user || data.user || data.data || data;
       setProfile({
-        displayName: data.display_name || "",
-        username: data.username || "",
-        email: data.email || "",
-        bio: data.bio || "",
-        avatar: data.avatar_url || "",
+        displayName: userData.display_name || "",
+        username: userData.username || "",
+        email: userData.email || "",
+        bio: userData.bio || "",
+        avatar: userData.avatar_url || "",
       });
     } catch (err) {
       console.error("Error loading profile:", err);
@@ -89,7 +90,7 @@ export default function ProfilePage() {
 
     try {
       // Call API to update profile
-      const response = await fetch("http://localhost:3000/api/users/profile", {
+      const response = await fetch("http://localhost:3000/api/users/me/profile", {
         method: "PUT",
         credentials: 'include', // ✅ Add this for cookies
         headers: {
@@ -126,28 +127,33 @@ export default function ProfilePage() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Posts data from API:", data.data); // Debug log
         // Transform backend data to match PostCard format
-        const transformedPosts = (data.data || []).map((post: any) => ({
-          id: post.id,
-          author: {
-            id: post.author?.id || '',
-            name: post.author?.display_name || post.author?.username || 'Unknown',
-            username: post.author?.username || '',
-            avatar: post.author?.avatar_url || '/default-avatar.jpg',
-            bio: post.author?.bio || ''
-          },
-          title: post.title,
-          excerpt: post.excerpt || '',
-          content: post.content,
-          image: post.featured_image_url || post.cover_image_url,
-          tags: post.tags?.map((t: any) => t.name || t) || [],
-          createdAt: new Date(post.created_at || post.published_at),
-          likes: post._count?.likes || post.likes_count || 0,
-          comments: post._count?.comments || post.comments_count || 0,
-          isLiked: post.is_liked || false,
-          isSaved: post.is_saved || false,
-          isFollowing: false // Own posts
-        }));
+        const transformedPosts = (data.data || []).map((post: any) => {
+          const imageUrl = post.featured_image_url || post.cover_image_url || undefined;
+          return {
+            id: post.id,
+            author: {
+              id: post.author?.id || '',
+              name: post.author?.display_name || post.author?.username || 'Unknown',
+              username: post.author?.username || '',
+              avatar: post.author?.avatar_url || '/default-avatar.jpg',
+              bio: post.author?.bio || ''
+            },
+            title: post.title,
+            excerpt: post.excerpt || '',
+            content: post.content,
+            image: imageUrl,
+            tags: post.tags?.map((t: any) => t.name || t) || [],
+            createdAt: new Date(post.created_at || post.published_at),
+            likes: post.like_count || post._count?.likes || post.likes_count || 0,
+            comments: post.comment_count || post._count?.comments || post.comments_count || 0,
+            isLiked: post.is_liked || false,
+            isSaved: post.is_saved || false,
+            isFollowing: false // Own posts
+          };
+        });
+        console.log("Transformed posts:", transformedPosts); // Debug log
         setPosts(transformedPosts);
       } else {
         console.error("Failed to load posts:", response.status, response.statusText);
