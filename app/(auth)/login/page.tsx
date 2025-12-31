@@ -38,18 +38,11 @@ export default function LoginPage() {
 
       const data = await response.json(); // Parse response data
 
-      // ⭐ LƯU TOKEN VÀO COOKIE (thay vì localStorage)
-      // Lưu access token với thời hạn 7 ngày
-      document.cookie = `authToken=${
-        data.tokens.access_token
-      }; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
+      // ⭐ CHANGE: Save to localStorage instead of cookies
+      localStorage.setItem("authToken", data.tokens.access_token);
+      localStorage.setItem("refreshToken", data.tokens.refresh_token);
 
-      // Lưu refresh token với thời hạn 30 ngày
-      document.cookie = `refreshToken=${
-        data.tokens.refresh_token
-      }; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Strict`;
-
-      // ⭐ Chuyển hướng đến trang /home sau khi đăng nhập thành công
+      // Redirect to /home
       router.push("/home");
     } catch (err) {
       // Xử lý lỗi và hiển thị thông báo
