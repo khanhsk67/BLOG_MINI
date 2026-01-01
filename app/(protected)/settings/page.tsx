@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
@@ -36,13 +36,66 @@ export default function SettingsPage() {
 
   // Profile settings
   const [profile, setProfile] = useState({
-    displayName: "John Doe",
-    username: "johndoe",
-    email: "john@example.com",
-    bio: "Software developer and tech enthusiast",
-    website: "https://johndoe.com",
-    location: "San Francisco, CA",
+    id: "",
+    displayName: "",
+    username: "",
+    email: "",
+    bio: "",
+    avatarUrl: "/default-avatar.jpg",
+    website: "",
+    location: "",
   });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Fetch current user details
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const authToken = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("authToken="))
+          ?.split("=")[1];
+
+        if (!authToken) {
+          router.push("/login"); // Redirect if not logged in
+          return;
+        }
+
+        const response = await fetch("/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Assuming structure: { success: true, data: { user: { ... } } }
+          if (data.success && data.data?.user) {
+            const user = data.data.user;
+            setProfile({
+              id: user.id || "",
+              displayName: user.display_name || user.username || "",
+              username: user.username || "",
+              email: user.email || "",
+              bio: user.bio || "",
+              avatarUrl: user.avatar_url || "/default-avatar.jpg",
+              website: "", // Backend might not support these yet
+              location: "",
+            });
+            setAvatarUrl(user.avatar_url || "/default-avatar.jpg");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [router]);
 
   // Notification settings
   const [notifications, setNotifications] = useState({
@@ -65,58 +118,135 @@ export default function SettingsPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file");
       return;
     }
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      alert("File size must be less than 5MB");
       return;
     }
 
     try {
       setIsUploadingAvatar(true);
-
-      const authToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('authToken='))
-        ?.split('=')[1];
+      const authToken = document.cookie.split("; ").find((row) => row.startsWith("authToken="))?.split("=")[1];
 
       if (!authToken) {
-        alert('Please login to upload avatar');
+        alert("Please login to upload avatar");
         return;
       }
 
       const formData = new FormData();
-      formData.append('avatar', file);
+      formData.append("avatar", file);
 
-      const response = await fetch('/api/upload/avatar', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        },
+      const response = await fetch("/api/upload/avatar", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${authToken}` },
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to upload avatar');
-      }
+      if (!response.ok) throw new Error("Failed to upload avatar");
 
       const data = await response.json();
-
-      // Update avatar URL with the new uploaded image
-      if (data.avatar_url || data.url) {
-        setAvatarUrl(data.avatar_url || data.url);
-        alert('Avatar updated successfully!');
+      if (data.success && (data.data?.url || data.data?.avatar_url)) {
+        const newUrl = data.data.url || data.data.avatar_url;
+        setAvatarUrl(newUrl);
+        // Also update profile state locally
+        setProfile(prev => ({ ...prev, avatarUrl: newUrl }));
+        alert("Avatar updated successfully!");
+      } else {
+        // Fallback if structure is different as seen in other snippets
+        if (data.avatar_url || data.url) {
+          setAvatarUrl(data.avatar_url || data.url);
+          setProfile(prev => ({ ...prev, avatarUrl: data.avatar_url || data.url }));
+          alert("Avatar updated successfully!");
+        }
       }
     } catch (error) {
-      console.error('Avatar upload error:', error);
-      alert('Failed to upload avatar. Please try again.');
+      console.error("Avatar upload error:", error);
+      alert("Failed to upload avatar.");
     } finally {
       setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      const authToken = document.cookie.split("; ").find((row) => row.startsWith("authToken="))?.split("=")[1];
+      if (!authToken) return;
+
+      // Use the existing /api/user/profile route which proxies to backend
+      const response = await fetch(`/api/user/profile`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          display_name: profile.displayName,
+          bio: profile.bio,
+        }),
+      });
+
+      if (response.ok) {
+        alert("Profile updated successfully!");
+      } else {
+        const data = await response.json();
+        console.error("Failed to update profile", data);
+        alert(data.error?.message || "Failed to update profile");
+      }
+    } catch (e) {
+      console.error("Error updating profile", e);
+      alert("Error updating profile");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const [passwords, setPasswords] = useState({
+    current: "",
+    new: "",
+    confirm: ""
+  });
+
+  const handleChangePassword = async () => {
+    if (passwords.new !== passwords.confirm) {
+      alert("New passwords do not match");
+      return;
+    }
+    if (!passwords.current || !passwords.new) {
+      alert("Please fill in all password fields");
+      return;
+    }
+
+    try {
+      const authToken = document.cookie.split("; ").find((row) => row.startsWith("authToken="))?.split("=")[1];
+      if (!authToken) return;
+
+      const response = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          currentPassword: passwords.current,
+          newPassword: passwords.new
+        }),
+      });
+
+      if (response.ok) {
+        alert("Password changed successfully");
+        setPasswords({ current: "", new: "", confirm: "" });
+      } else {
+        const data = await response.json();
+        alert(data.message || "Failed to change password");
+      }
+    } catch (e) {
+      console.error("Error changing password", e);
+      alert("Error changing password");
     }
   };
 
@@ -175,11 +305,10 @@ export default function SettingsPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                      activeTab === tab.id
-                        ? "bg-accent text-accent-foreground"
-                        : "bg-card text-foreground hover:bg-secondary border border-border"
-                    }`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeTab === tab.id
+                      ? "bg-accent text-accent-foreground"
+                      : "bg-card text-foreground hover:bg-secondary border border-border"
+                      }`}
                   >
                     <Icon className="w-5 h-5" />
                     <span className="font-medium">{tab.label}</span>
@@ -323,8 +452,12 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <Button className="mt-6 bg-accent hover:bg-accent/90">
-                      Save Changes
+                    <Button
+                      className="mt-6 bg-accent hover:bg-accent/90"
+                      onClick={handleSaveProfile}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? "Saving..." : "Save Changes"}
                     </Button>
                   </div>
                 </div>
@@ -357,14 +490,26 @@ export default function SettingsPage() {
                           <Input
                             type="password"
                             placeholder="Current password"
+                            value={passwords.current}
+                            onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
                           />
-                          <Input type="password" placeholder="New password" />
+                          <Input
+                            type="password"
+                            placeholder="New password"
+                            value={passwords.new}
+                            onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
+                          />
                           <Input
                             type="password"
                             placeholder="Confirm new password"
+                            value={passwords.confirm}
+                            onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
                           />
                         </div>
-                        <Button className="mt-4 bg-accent hover:bg-accent/90">
+                        <Button
+                          className="mt-4 bg-accent hover:bg-accent/90"
+                          onClick={handleChangePassword}
+                        >
                           Update Password
                         </Button>
                       </div>

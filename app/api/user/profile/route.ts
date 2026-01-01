@@ -57,8 +57,8 @@ export async function PATCH(request: NextRequest) {
 
     const body = await request.json()
 
-    // Update user profile via backend
-    const response = await fetch(`${API_URL}/users/profile`, {
+    // Update user profile via backend - correct endpoint is /users/me/profile
+    const response = await fetch(`${API_URL}/users/me/profile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

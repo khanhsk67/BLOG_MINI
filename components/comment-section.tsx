@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Trash2, Edit2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -307,7 +307,18 @@ export default function CommentSection({ postId, postAuthorId }: CommentSectionP
 
             {editingId === comment.id ? (
               <div className="mt-2">
-                <Input value={editingContent} onChange={(e) => setEditingContent(e.target.value)} className="text-sm" />
+                <Input
+                  key={`edit-input-${comment.id}`}
+                  value={editingContent}
+                  onChange={(e) => setEditingContent(e.target.value)}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Enter') saveEdit(comment.id);
+                    if (e.key === 'Escape') cancelEdit();
+                  }}
+                  autoFocus
+                  className="text-sm"
+                />
               </div>
             ) : (
               <p className="text-sm text-foreground break-words">{comment.content}</p>
